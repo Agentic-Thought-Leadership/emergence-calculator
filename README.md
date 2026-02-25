@@ -1,17 +1,47 @@
 # Agents + Edges Risk Curve
 
-An interactive React app that visualises the **Agents + Edges Risk Curve**. It always shows a **linear baseline** (adding agent risks together) and overlays a **connected-system curve** where coupling (edges) plus autonomy amplifies risk.
+An interactive React app that visualises the **Agents + Edges Risk Curve**. It always shows a **linear baseline** (adding agent risks together) and overlays one or more **connected-system curves** where coupling (edges) plus autonomy amplifies risk.
+
+This repo is published as **emergence-calculator** under the Agentic Thought Leadership organisation.
 
 ## What it does
 
-Use the sliders to set:
+Use the controls to set:
 - **Number of agents (N)**: total agents in the system
 - **Autonomy score (1–10)**: higher autonomy increases effects authority and propagation pressure
 - **K (max connections per new agent)**: caps how many existing agents each newly added agent connects to (interaction density)
+- **Topology**: changes how edges are formed (bounded degree, mesh, hub-and-spoke, pipeline)
 
-The graph always shows:
+The main chart always shows:
 - **Baseline (linear)**: additive risk as agents are added
-- **Connected (agents + edges)**: baseline plus coupling and cascade amplification scaled by autonomy
+- **Current (connected)**: baseline plus coupling and cascade amplification scaled by autonomy and topology
+- Optional: additional curves for pinned scenarios
+
+The app also shows the **risk multiple** (connected divided by baseline) as:
+- a highlighted KPI, and
+- a label inside the chart (for the current N)
+
+## Key features
+
+### Scenario compare
+- **Add scenario** pins the current settings as an additional curve.
+- **Load** applies a scenario back to the main controls.
+- **Save** stores a scenario locally in your browser (local storage) on your current machine.
+- Scenarios are capped at **8** for readability.
+
+### Saved scenarios (local only)
+Saved scenarios are stored in your browser **local storage** (not in GitHub, not shared across devices).
+
+You can:
+- **Apply**: load into main controls
+- **Add**: add to the comparison chart
+- **Delete**: remove from local storage
+
+### Export CSV
+Exports the full series (baseline, current connected curve, and scenario curves) to a CSV file.
+
+### Shareable URL
+The URL updates automatically with your current settings and pinned scenarios, so you can share a link that reproduces the view.
 
 ## Model
 
@@ -22,9 +52,9 @@ Connected system:
 - `R(n) = n · r0 + α · (E · L · A) + γ · (E · L · A)^2 / n`
 
 Where:
-- `E` is the number of edges (interactions) produced by a bounded-degree rule: each new agent adds up to `K` new connections
+- `E` is the number of edges (interactions), derived from the chosen topology and `K`
 - `A` is the autonomy score (1–10)
-- `L` is a load or busyness factor (fixed in this version)
+- `L` is a load/busyness factor (fixed in this version)
 - `r0`, `α`, `γ` are model parameters (fixed in this version)
 
 ## Download and run
@@ -37,51 +67,6 @@ Prereqs:
 
 ```bash
 git clone https://github.com/Agentic-Thought-Leadership/emergence-calculator.git
-cd <your-repo>
+cd emergence-calculator
 npm install
 npm run dev
-```
-
-Open the URL printed in the terminal (typically `http://localhost:5173`).
-
-### Option B: Download ZIP from GitHub
-
-1. Open the repo on GitHub
-2. Click **Code** then **Download ZIP**
-3. Unzip it, then run:
-
-```bash
-cd <unzipped-folder>
-npm install
-npm run dev
-```
-
-## Build a production version
-
-```bash
-npm run build
-npm run preview
-```
-
-This creates a production build in `dist/`.
-
-## License
-
-MIT. See `LICENSE`.
-
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
