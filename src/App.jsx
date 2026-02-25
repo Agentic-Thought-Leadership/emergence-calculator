@@ -65,6 +65,29 @@ const TOPOLOGIES = [
   { value: "pipeline", label: "Pipeline" },
 ];
 
+const TOPOLOGY_TIP = "Bounded: scalable default. Mesh: upper bound. Hub: control-plane focus. Pipeline: staged workflow.";
+const AUTONOMY_TIP = "1 Observe, 2 Classify, 3 Recommend, 4 Plan, 5 Coordinate, 6 Decide, 7 Execute, 8 Operate, 9 Optimise, 10 Self-direct.";
+
+const TOPOLOGY_GUIDE = [
+  { name: "Bounded degree (k)", when: "Default for production scale.", why: "Caps integration per new agent." },
+  { name: "Full mesh", when: "Stress test and upper bound.", why: "Everyone connects to everyone." },
+  { name: "Hub-and-spoke", when: "Orchestrator or control-plane pattern.", why: "Central hub concentrates systemic risk." },
+  { name: "Pipeline", when: "Stage-gated workflow.", why: "Minimal coupling, mostly downstream propagation." },
+];
+
+const AUTONOMY_GUIDE = [
+  { level: 1, label: "Observe", use: "Read only sensing." },
+  { level: 2, label: "Classify", use: "Tag and route, no commitments." },
+  { level: 3, label: "Recommend", use: "Suggest actions, human decides." },
+  { level: 4, label: "Plan", use: "Propose steps, human approves." },
+  { level: 5, label: "Coordinate", use: "Orchestrate work, limited effects." },
+  { level: 6, label: "Decide", use: "Bounded decisions, logged." },
+  { level: 7, label: "Execute", use: "Perform bounded actions." },
+  { level: 8, label: "Operate", use: "Execute across systems with guardrails." },
+  { level: 9, label: "Optimise", use: "Tune via feedback loops." },
+  { level: 10, label: "Self-direct", use: "Pursue goals with minimal intervention." },
+];
+
 function edgesBoundedK(n, k) {
   let edges = 0;
   for (let i = 2; i <= n; i += 1) edges += Math.min(k, i - 1);
@@ -233,6 +256,55 @@ function buildCsv({ rows, scenarioKeys }) {
 function hslColorForIndex(idx) {
   const hue = (idx * 57) % 360;
   return `hsl(${hue} 70% 40%)`;
+}
+
+function InfoIcon({ title }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function onDocMouseDown(e) {
+      if (!ref.current) return;
+      if (!ref.current.contains(e.target)) setOpen(false);
+    }
+
+    function onKeyDown(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+
+    document.addEventListener("mousedown", onDocMouseDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onDocMouseDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <span ref={ref} className="relative ml-2 inline-flex">
+      <button
+        type="button"
+        title={title}
+        aria-label={title}
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-700 ring-1 ring-slate-200"
+      >
+        i
+      </button>
+
+      {open ? (
+        <div
+          role="tooltip"
+          className="absolute right-0 top-6 z-50 w-72 rounded-xl bg-white p-3 text-xs text-slate-700 shadow-lg ring-1 ring-slate-200"
+        >
+          {title}
+          <div className="mt-2 text-[10px] text-slate-500">Click outside to close.</div>
+        </div>
+      ) : null}
+    </span>
+  );
 }
 
 function CustomTooltip({ active, payload, label }) {
@@ -514,14 +586,14 @@ export default function AgentsEdgesRiskCurveApp() {
 
   function exportCsv() {
     const csv = buildCsv({ rows: chartRows, scenarioKeys: scenarioLineKeys });
-    downloadTextFile("agents-edges-risk-curve.csv", csv, "text/csv;charset=utf-8");
+    downloadTextFile("emergence-risk-calculator.csv", csv, "text/csv;charset=utf-8");
   }
 
   return (
     <div className="min-h-screen w-full bg-slate-50 text-slate-900">
       <div className="mx-auto max-w-6xl px-6 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight">Agents + Edges Risk Curve</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Emergence Risk Calculator</h1>
           <p className="mt-2 max-w-3xl text-sm text-slate-600">
             Baseline is always linear (agents summed). Connected risk adds edge coupling plus cascade amplification, scaled by autonomy and topology.
           </p>
@@ -538,7 +610,7 @@ export default function AgentsEdgesRiskCurveApp() {
           </div>
 
           <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <div className="text-sm font-medium">Autonomy score (1 to 10)</div>
+            <div className="text-sm font-medium flex items-center">Autonomy score (1 to 10) <InfoIcon title={AUTONOMY_TIP} /></div>
             <div className="mt-2 flex items-center gap-3">
               <input type="range" min={1} max={10} value={safeAutonomy} onChange={(e) => setAutonomy(e.target.value)} className="w-full" />
               <input type="number" min={1} max={10} value={safeAutonomy} onChange={(e) => setAutonomy(e.target.value)} className="w-20 rounded-lg border border-slate-200 px-2 py-1 text-sm" />
@@ -556,7 +628,7 @@ export default function AgentsEdgesRiskCurveApp() {
           </div>
 
           <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <div className="text-sm font-medium">Topology</div>
+            <div className="text-sm font-medium flex items-center">Topology <InfoIcon title={TOPOLOGY_TIP} /></div>
             <div className="mt-2">
               <select value={safeTopology} onChange={(e) => setTopology(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
                 {TOPOLOGIES.map((t) => (
@@ -567,6 +639,65 @@ export default function AgentsEdgesRiskCurveApp() {
             <div className="mt-3 text-xs text-slate-500">Changes how edges E(n) are formed, affecting coupling and cascades.</div>
           </div>
         </div>
+
+        <details className="mt-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <summary className="cursor-pointer text-sm font-medium text-slate-900">
+            Guidance: topology and autonomy
+            <span className="ml-2 text-xs font-normal text-slate-500">(click to expand)</span>
+          </summary>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <div className="text-xs font-semibold text-slate-700">Topology</div>
+              <div className="mt-1 text-xs text-slate-500">Choose based on architecture shape and where coupling concentrates.</div>
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-left text-slate-500">
+                      <th className="pb-2 pr-3 font-medium">Type</th>
+                      <th className="pb-2 pr-3 font-medium">Use when</th>
+                      <th className="pb-2 font-medium">Why it matters</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {TOPOLOGY_GUIDE.map((r) => (
+                      <tr key={r.name} className="border-t border-slate-200">
+                        <td className="py-2 pr-3 font-medium text-slate-900">{r.name}</td>
+                        <td className="py-2 pr-3 text-slate-700">{r.when}</td>
+                        <td className="py-2 text-slate-600">{r.why}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs font-semibold text-slate-700">Autonomy (1-10)</div>
+              <div className="mt-1 text-xs text-slate-500">Autonomy is effects authority, not intelligence.</div>
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-left text-slate-500">
+                      <th className="pb-2 pr-3 font-medium">Level</th>
+                      <th className="pb-2 pr-3 font-medium">Label</th>
+                      <th className="pb-2 font-medium">Use when</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {AUTONOMY_GUIDE.map((r) => (
+                      <tr key={r.level} className="border-t border-slate-200">
+                        <td className="py-2 pr-3 font-medium text-slate-900">{r.level}</td>
+                        <td className="py-2 pr-3 text-slate-700">{r.label}</td>
+                        <td className="py-2 text-slate-600">{r.use}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </details>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
