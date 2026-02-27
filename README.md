@@ -3,6 +3,7 @@
 An interactive React app that estimates emergence risk using the **Agents + Edges Risk Curve**. It always shows a **linear baseline** (adding agent risks together) and overlays one or more **connected-system curves** where coupling (edges) plus autonomy amplifies risk.
 
 Repository: `Agentic-Thought-Leadership/emergence-calculator`
+<img width="1117" height="1045" alt="emergence-risk-calculator-example" src="https://github.com/user-attachments/assets/19287a28-ec11-45a4-aab8-50c41dccaf36" />
 
 ## What it does
 
